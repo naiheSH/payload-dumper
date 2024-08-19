@@ -1,0 +1,58 @@
+name: Extract Boot Image
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  extract_boot_image:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v3
+
+    - name: Set up Python 3.12
+      uses: actions/setup-python@v4
+      with:
+        python-version: 3.12
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install requests
+
+    - name: Download the file
+      run: |
+        import requests
+        url = "https://ultimateota.d.miui.com/OS1.0.45.0.UNCCNXM/miui_HOUJI_OS1.0.45.0.UNCCNXM_8597412d79_14.0.zip?t=1724090792&s=45d87d5f00cc93e4e569e3e5f92be5cd"
+        local_filename = "miui.zip"
+        with requests.get(url, stream=True) as r:
+            r.raise_for_status()
+            with open(local_filename, 'wb') as f:
+                for chunk in r.iter_content(chunk_size=8192):
+                    f.write(chunk)
+
+    - name: Extract boot image
+      run: |
+        import zipfile
+
+        with zipfile.ZipFile("miui.zip", 'r') as zip_ref:
+            zip_ref.extractall("miui")
+
+        # Example path, adjust if necessary
+        import os
+
+        boot_image_path = None
+        for root, dirs, files in os.walk("miui"):
+            for file in files:
+                if "boot" in file.lower():
+                    boot_image_path = os.path.join(root, file)
+                    break
+
+        if boot_image_path:
+            print(f"Found boot image: {boot_image_path}")
+        else:
+            raise FileNotFoundError("Boot image not found in the zip file.")

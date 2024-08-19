@@ -1,0 +1,38 @@
+name: Extract Boot Image
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  extract:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.x'
+
+    - name: Install dependencies
+      run: pip install -r requirements.txt
+
+    - name: Download MIUI ZIP
+      run: wget -O miui.zip "https://ultimateota.d.miui.com/OS1.0.45.0.UNCCNXM/miui_HOUJI_OS1.0.45.0.UNCCNXM_8597412d79_14.0.zip?t=1724090792&s=45d87d5f00cc93e4e569e3e5f92be5cd"
+
+    - name: Extract payload.bin
+      run: |
+        unzip miui.zip payload.bin -d extracted_files
+        python payload-dumper.py extracted_files/payload.bin --out extracted_files
+
+    - name: Extract boot.img
+      run: |
+        if [ -f extracted_files/boot.img ]; then
+          echo "boot.img extracted successfully"
+        else
+          echo "boot.img not found" && exit 1
+        fi

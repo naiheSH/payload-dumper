@@ -108,12 +108,23 @@ if errorlevel 1 (
     echo 错误：提取失败，请检查分区名称或工具路径。
     exit /b 1
 )
+echo
+echo partitions_info.json是一个记录分区内容文件
+:delete_partitions_info
+:: 提示用户是否删除partitions_info.json文件
+set /p delete_info_choice=是否删除output文件夹中的partitions_info.json文件？（y/n）：
+if /i "%delete_info_choice%"=="y" (
+    if exist "%output_dir%\partitions_info.json" (
+        del "%output_dir%\partitions_info.json"
+        echo partitions_info.json文件已删除。
+    ) else (
+        echo partitions_info.json文件不存在。
+    )
+) else (
+    echo partitions_info.json文件保留。
+)
 
-:: 删除output文件夹中的partitions_info.json文件
-::if exist "%output_dir%\partitions_info.json" (
-::   del "%output_dir%\partitions_info.json"
-::)
-echo 
+echo
 :delete_payload_bin
 :: 提示用户是否删除payload.bin文件
 set /p delete_choice=是否删除payload.bin文件？（y/n）：
